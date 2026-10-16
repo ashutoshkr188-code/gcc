@@ -1,0 +1,200 @@
+"""Builds research/source_register.csv from the discovery list below.
+
+Every row is a source *discovered* through web search on 2026-10-16. Retrieval
+fields start empty. Only pipeline/probe_sources.py may fill them, and only with
+the real outcome of an HTTP fetch.
+
+publication_date_basis records where a date hint came from:
+  url_path       - date is embedded in the URL itself
+  search_snippet - date appeared in a search result summary (unverified)
+  unknown        - no date hint
+"""
+import csv
+from pathlib import Path
+
+DISCOVERY_DATE = "2026-10-16"
+DISCOVERED_VIA = "web_search"
+
+# (id, name, publisher, url, source_type, tier, categories, entities,
+#  access_method, publication_date, publication_date_basis, restrictions, notes)
+SOURCES = [
+    # --- Tier 1/2: official company sources ---
+    ("S001", "Microsoft India Development Center expands its footprint in Noida", "Microsoft",
+     "https://news.microsoft.com/source/asia/2021/12/02/microsoft-india-development-center-expands-its-footprint-in-noida/",
+     "official_company_press_release", 1, "A", "Microsoft", "html", "2021-12-02", "url_path", "", ""),
+    ("S007", "Goldman Sachs opens new Hyderabad office (2023)", "Goldman Sachs",
+     "https://www.goldmansachs.com/pressroom/press-releases/2023/goldman-sachs-opens-new-hyderabad-office",
+     "official_company_press_release", 1, "A", "Goldman Sachs", "html", "2023", "url_path", "", ""),
+    ("S008", "Goldman Sachs opens new Hyderabad office (2021)", "Goldman Sachs",
+     "https://www.goldmansachs.com/pressroom/press-releases/2021/gs-opens-new-hyderabad-office",
+     "official_company_press_release", 1, "A", "Goldman Sachs", "html", "2021", "url_path", "", ""),
+    ("S009", "JPMorgan Chase opens new offices in Mumbai and Bengaluru", "JPMorgan Chase & Co.",
+     "https://www.jpmorganchase.com/newsroom/press-releases/2023/jpmorgan-chase-opens-new-offices-in-mumbai-and-bengaluru",
+     "official_company_press_release", 1, "A", "JPMorgan Chase", "html", "2023", "url_path", "", ""),
+    ("S010", "At work in India", "JPMorgan Chase & Co.",
+     "https://jpmorganchase.com/communities/india",
+     "official_company_website", 2, "A;G", "JPMorgan Chase", "html", "", "unknown", "",
+     "Undated web page: content may change; snapshot date matters"),
+    ("S011", "Barclays inaugurates new world-class campus in Pune", "Barclays PLC",
+     "https://home.barclays/news/press-releases/2019/12/barclays-inaugurates-new-world-class-campus-in-pune",
+     "official_company_press_release", 1, "A", "Barclays", "html", "2019-12", "url_path", "", ""),
+    ("S012", "BGSC India - Investing in our workspaces", "Barclays (barclays.in)",
+     "https://barclays.in/bgsc-india/investing-in-our-workspaces",
+     "official_company_website", 2, "A", "Barclays", "html", "", "unknown", "", "Undated web page"),
+    ("S013", "Mastercard opens new state-of-the-art Tech Hub in Pune, India", "Mastercard",
+     "https://www.mastercard.com/news/ap/en/newsroom/press-releases/en/2024/mastercard-opens-new-state-of-the-art-tech-hub-in-pune-india/",
+     "official_company_press_release", 1, "A", "Mastercard", "html", "2024", "url_path", "", ""),
+    ("S018", "Ford India company profile", "Ford India",
+     "https://www.india.ford.com/about-ford/corporate/company-profile/",
+     "official_company_website", 2, "A;B", "Ford", "html", "", "unknown", "", "Undated web page"),
+    ("S019", "Ford India restructuring announcement (Business Wire)", "Ford Motor Company via Business Wire",
+     "https://www.businesswire.com/news/home/20210909005446/en",
+     "official_company_press_release", 1, "A", "Ford", "html", "2021-09-09", "url_path", "",
+     "Wire distribution of a company release"),
+    # --- Tier 6: news / trade press (company centres) ---
+    ("S002", "Adobe backs 'Create in India' vision ... third campus in Noida", "Business Today",
+     "https://www.businesstoday.in/amp/tech-today/news/story/adobe-backs-create-in-india-vision-with-ai-tools-new-partnerships-and-a-third-campus-in-noida-474351-2025-05-01",
+     "news", 6, "A", "Adobe", "html", "2025-05-01", "url_path", "", "No official Adobe release discovered yet"),
+    ("S003", "Adobe expands India footprint, opens new office to host 2000 employees", "The News Minute (IANS)",
+     "https://www.thenewsminute.com/atom/adobe-expands-india-footprint-opens-new-office-host-2000-employees-176313",
+     "news", 6, "A", "Adobe", "html", "", "unknown", "", "Year of announcement not clear from search"),
+    ("S004", "IIT Madras page carrying Walmart Global Tech boilerplate", "IIT Madras",
+     "https://www.iitm.ac.in/hi/node/11196",
+     "third_party_institutional_page", 6, "A", "Walmart", "html", "", "unknown", "",
+     "Company boilerplate on a third-party site; official Walmart page still needed"),
+    ("S005", "Walmart expands Bengaluru footprint, leases over 1 lakh sq ft near airport", "The Realty Today",
+     "https://therealtytoday.com/news/commercial/walmart-expands-bengaluru-footprint-leases-over-1-lakh-sq-ft-near-airport",
+     "news", 6, "A;D", "Walmart", "html", "", "unknown", "",
+     "Reportedly cites lease registration data; lease terms are a cost observation candidate"),
+    ("S006", "Walmart expands tech presence in India (Chennai)", "IndianWeb2",
+     "https://www.indianweb2.com/2025/04/walmart-expands-tech-presence-in-india.html",
+     "news", 6, "A", "Walmart", "html", "2025-04", "url_path", "", ""),
+    ("S014", "American Express to open new 1 million sq ft campus in Gurugram", "Business Today",
+     "https://www.businesstoday.in/india/story/american-express-to-open-new-1-million-sq-ft-campus-in-gurugram-428203-2024-05-03",
+     "news", 6, "A", "American Express", "html", "2024-05-03", "url_path", "", ""),
+    ("S015", "American Express to Open State-of-the-Art Campus in India (press release copy)", "CXOToday",
+     "https://cxotoday.com/press-release/american-express-to-open-state-of-the-art-campus-in-india/",
+     "syndicated_press_release", 6, "A", "American Express", "html", "", "unknown", "",
+     "Third-party copy of a company release; official Amex newsroom URL still needed"),
+    ("S016", "Lilly doubles down on its presence in India with new capability center", "Fierce Pharma",
+     "https://www.fiercepharma.com/pharma/eli-lilly-doubles-down-its-presence-india-new-capability-center",
+     "trade_publication", 6, "A", "Eli Lilly", "html", "2025-01", "search_snippet", "", ""),
+    ("S017", "Eli Lilly inaugurates global capability centre in Hyderabad", "Indian Pharma Post",
+     "https://www.indianpharmapost.com/digitisation/eli-lilly-inaugurates-global-capability-centre-in-hyderabad-to-advance-ai-initiatives-17540",
+     "trade_publication", 6, "A", "Eli Lilly", "html", "2025-08", "search_snippet", "", ""),
+    ("S020", "Ford Business Solutions expands in India with new Bengaluru office", "Analytics India Magazine",
+     "https://analyticsindiamag.com/ai-news-updates/ford-business-solutions-expands-in-india-with-new-bengaluru-office",
+     "news", 6, "A", "Ford", "html", "", "unknown", "", ""),
+    # --- Tier 3: government (policy / regulation) ---
+    ("S021", "Draft Karnataka GCC Policy 2024-2029", "Dept. of Electronics, IT, BT and S&T, Government of Karnataka",
+     "https://itbtst.karnataka.gov.in/storage/pdf-files/Draft-KarnatakaGCCPolicy2024-2029-.pdf",
+     "government_policy_draft", 3, "F", "Karnataka", "pdf", "2024-09", "search_snippet", "",
+     "DRAFT only. Final policy text from an official host still needed"),
+    ("S037", "Procedure for STP/EHTP Scheme Registration (Bengaluru)", "Software Technology Parks of India",
+     "https://bengaluru.stpi.in/sites/default/files/download-format-document/Procedure%20for%20STP-EHTP%20Scheme%20Registration_1_0.pdf",
+     "government_procedure", 3, "E;C", "Central", "pdf", "", "unknown", "", ""),
+    # --- Tier 6: policy summaries (discovery pointers, not evidence of terms) ---
+    ("S022", "Karnataka GCC Policy 2024-29 (copy hosted by SSF Global)", "SSF Global (third-party host)",
+     "https://ssfglobal.in/wp-content/uploads/2025/07/karnataka-gcc-policy-2024-29.pdf",
+     "third_party_copy_of_government_document", 6, "F", "Karnataka", "pdf", "", "unknown", "",
+     "Not an official host: may be compared against the official text, never used in place of it"),
+    ("S023", "BDO India - Karnataka GCC Policy summary", "BDO India",
+     "https://bdo.in/getmedia/ee3322eb-8399-4a67-b3b3-9a71ed9e6746/GCC-Policy_BDO-India_Karnataka-GCC-Policy-_Design_1.pdf",
+     "professional_advisory_summary", 6, "F", "Karnataka", "pdf", "", "unknown", "", ""),
+    ("S024", "Karnataka's Final GCC Policy Launched", "Khaitan & Co",
+     "https://khaitanco.com/thought-leadership/Karnatakas-Final-GCC-Policy-Launched",
+     "law_firm_note", 6, "F", "Karnataka", "html", "", "unknown", "", ""),
+    ("S025", "Maharashtra Global Capability Centre Policy 2025", "Grant Thornton Bharat",
+     "https://www.grantthornton.in/globalassets/1.-member-firms/india/assets/pdfs/maharashtra-global-capability-centre-policy-2025.pdf",
+     "professional_advisory_summary", 6, "F", "Maharashtra", "pdf", "2025", "url_path", "",
+     "Official GR still needed"),
+    ("S026", "ERGO - Maharashtra GCC Policy", "Khaitan & Co",
+     "https://www.khaitanco.com/sites/default/files/2025-11/ERGO%20-%20Maharashtra%20GCC%20Policy%20-%2011%20November%202025.pdf",
+     "law_firm_note", 6, "F", "Maharashtra", "pdf", "2025-11-11", "url_path", "", ""),
+    ("S027", "KPMG Flash News - Maharashtra GCC policy 2025", "KPMG India",
+     "https://www.in.kpmg.com/taxflashnews/KPMG-Flash-News-Maharshtra-GCC-policy-2025.pdf",
+     "professional_advisory_summary", 6, "F", "Maharashtra", "pdf", "2025", "url_path", "", ""),
+    ("S028", "Uttar Pradesh releases its final GCC Policy", "Khaitan & Co",
+     "https://www.khaitanco.com/thought-leadership/Uttar-Pradesh-releases-its-final-GCC-Policy",
+     "law_firm_note", 6, "F", "Uttar Pradesh", "html", "", "unknown", "",
+     "Search summary reports a notification dated 7 May 2025, unverified. Official notification still needed"),
+    ("S029", "Invest UP branded content (GCC)", "Invest UP via dnb.co.in host",
+     "https://www.dnb.co.in/EVENTS/GCC-HYD/IMAGES/2026/BRANDED-CONTENT/Foreward/Invest-UP.pdf",
+     "government_promotional_material_third_party_host", 6, "F", "Uttar Pradesh", "pdf", "2026", "url_path", "",
+     "Promotional material, not a legal instrument"),
+    ("S030", "Haryana Global Capability Centres Policy 2026 (alert)", "Grant Thornton Bharat",
+     "https://www.grantthornton.in/globalassets/1.-member-firms/india/assets/pdfs/alerts/haryana-global-capability-centres-policy-2026.pdf",
+     "professional_advisory_summary", 6, "F", "Haryana", "pdf", "2026", "url_path", "",
+     "Official gazette notification still needed"),
+    ("S031", "Haryana's GCC policy framework built for long-term growth", "JLL India",
+     "https://www.jll.com/en-in/insights/haryana-is-driving-gcc-expansion-with-a-policy-framework",
+     "real_estate_research", 5, "F", "Haryana", "html", "", "unknown", "", ""),
+    ("S032", "Tamil Nadu 2030: the GCC revolution", "Cyril Amarchand Mangaldas (blog)",
+     "https://corporate.cyrilamarchandblogs.com/2025/11/tamil-nadu-2030-the-gcc-revolution-powering-the-usd-1-trillion-economy-dream/",
+     "law_firm_note", 6, "F", "Tamil Nadu", "html", "2025-11", "url_path", "",
+     "Says TN has a scheme, not a standalone policy (unverified). Official G.O. still needed"),
+    ("S033", "Indian states race to become GCC powerhouses", "law.asia (DSK Legal)",
+     "https://law.asia/india-gcc-growth/",
+     "law_firm_note", 6, "F", "Multi-state", "html", "", "unknown", "", ""),
+    ("S034", "New Telangana GCC policy to focus on AI, space, semiconductors", "Siasat",
+     "https://www.siasat.com/new-telangana-gcc-policy-to-focus-on-ai-space-semiconductors-3543873/",
+     "news", 6, "F", "Telangana", "html", "", "unknown", "",
+     "Reports a policy being drafted: status 'announced/under preparation' at most"),
+    ("S035", "KPMG Flash News - GOI notifies implementation of Labour Codes", "KPMG India",
+     "https://www.in.kpmg.com/taxflashnews/KPMG-Flash-News-GOI-notifies-implementation-of-Labour-Codes.pdf",
+     "professional_advisory_summary", 6, "E;D", "Central", "pdf", "", "unknown", "",
+     "Gazette notification still needed"),
+    ("S036", "All four labour codes enforced from 21 November 2025", "King Stubb & Kasiva",
+     "https://ksandk.com/labour-employment/all-four-labour-codes-enforced-from-21-november-2025/",
+     "law_firm_note", 6, "E", "Central", "html", "", "unknown", "", ""),
+    # --- Tier 4/5: industry and real-estate research ---
+    ("S038", "GCC 4.0: India redefining globalization blueprint", "NASSCOM (with Zinnov)",
+     "https://nasscom.in/knowledge-center/publications/gcc-40-india-redefining-globalization-blueprint",
+     "industry_research", 4, "G;A", "India", "html", "2024-09", "search_snippet",
+     "Full report may be members-only / gated", "Landing page; city-level counts likely inside the gated report"),
+    ("S039", "India Market Monitor Q2 2026", "CBRE",
+     "https://mktgdocs.cbre.com/2299/46818e44-7c68-4075-87d4-f55be26b98d0-598336659/India_Market_Monitor_Q2_2026_-.pdf",
+     "real_estate_research", 5, "D;G", "India", "pdf", "2026-Q2", "url_path",
+     "CBRE copyright: store extracted figures with citation, do not republish the document", ""),
+    ("S040", "India's office leasing reaches record 23.9 mn sq ft in Q2 2026 (Vestian)", "The Realty Today",
+     "https://www.therealtytoday.com/news/market-insights/indias-office-leasing-reaches-record-239-mn-sq-ft-in-q2-2026-as-rentals-rise-vestian-report",
+     "news", 6, "D", "India", "html", "2026-Q2", "search_snippet", "", "Secondary report of Vestian data"),
+    ("S041", "GCCs set to smash records despite modest H1 2026 dip in India office market", "CXOToday",
+     "https://cxotoday.com/others/gccs-set-to-smash-records-despite-modest-h1-2026-dip-in-india-office-market/",
+     "news", 6, "D;G", "India", "html", "2026-H1", "search_snippet", "", "Secondary report of JLL data"),
+]
+
+FIELDS = [
+    "source_id", "source_name", "publisher", "url", "source_type", "tier", "data_categories",
+    "related_entities", "access_method", "publication_date", "publication_date_basis",
+    "access_restrictions", "discovered_via", "discovery_date",
+    "last_retrieval_attempt", "last_retrieval_date", "retrieval_status", "http_status",
+    "retrieval_error", "content_sha256", "notes",
+]
+
+
+def main():
+    out = Path(__file__).parent / "source_register.csv"
+    ids = [s[0] for s in SOURCES]
+    urls = [s[3] for s in SOURCES]
+    assert len(set(ids)) == len(ids), "duplicate source_id"
+    assert len(set(urls)) == len(urls), "duplicate url"
+    rows = []
+    for (sid, name, pub, url, stype, tier, cats, ents, method, pdate, pbasis, restr, notes) in sorted(SOURCES):
+        rows.append(dict(
+            source_id=sid, source_name=name, publisher=pub, url=url, source_type=stype, tier=tier,
+            data_categories=cats, related_entities=ents, access_method=method,
+            publication_date=pdate, publication_date_basis=pbasis, access_restrictions=restr,
+            discovered_via=DISCOVERED_VIA, discovery_date=DISCOVERY_DATE,
+            last_retrieval_attempt="", last_retrieval_date="", retrieval_status="not_attempted",
+            http_status="", retrieval_error="", content_sha256="", notes=notes,
+        ))
+    with out.open("w", newline="") as f:
+        w = csv.DictWriter(f, fieldnames=FIELDS)
+        w.writeheader()
+        w.writerows(rows)
+    print(f"wrote {len(rows)} sources -> {out}")
+
+
+if __name__ == "__main__":
+    main()

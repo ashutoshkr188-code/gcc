@@ -1,0 +1,11 @@
+company,industry,candidate_cities,official_sources_discovered,secondary_sources_discovered,selection_reason,evidence_status,open_gaps
+Microsoft,Technology,Hyderabad;Bengaluru;Noida,S001,,Official newsroom release names IDC campuses incl. Noida,Discovered,Need current official locations page; Hyderabad and Bengaluru only in 2021 release text (unverified)
+Adobe,Technology,Noida;Bengaluru,,S002;S003,Covers Noida; several news reports,Discovered,No official Adobe source yet
+Walmart (Walmart Global Tech),Retail,Bengaluru;Chennai,,S004;S005;S006,Covers Chennai; lease data gives a cost observation candidate,Discovered,No official Walmart page yet; Gurugram mentioned only in boilerplate
+Goldman Sachs,Financial services,Bengaluru;Hyderabad,S007;S008,,Two official press releases,Discovered,Bengaluru centre needs its own official source
+JPMorgan Chase,Financial services,Bengaluru;Hyderabad,S009;S010,,Official release and official India page,Discovered,
+Barclays,Financial services,Pune;Chennai;Noida,S011;S012,,Official release (Pune) and official India site listing locations,Discovered,Chennai and Noida only listed; no site-level detail
+Mastercard,Payments,Pune,S013,,Official newsroom release,Discovered,No Gurugram evidence found; do not add Gurugram
+American Express,Financial services,Gurugram,,S014;S015,Only candidate covering Gurugram so far,Discovered,No official Amex URL yet; Gurugram coverage depends on this company
+Eli Lilly,Pharmaceuticals,Hyderabad;Bengaluru,,S016;S017,Pharma coverage; announcement and inauguration both reported,Discovered,No official lilly.com release yet
+Ford (Ford Business Solutions),Automotive,Chennai;Bengaluru,S018;S019,S020,Official India profile; covers Chennai,Discovered,Bengaluru only from news
