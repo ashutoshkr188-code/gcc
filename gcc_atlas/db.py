@@ -30,13 +30,29 @@ def _resolve_db_path(path=None):
         return Path(path)
     if "GCC_ATLAS_DB" in os.environ:
         return Path(os.environ["GCC_ATLAS_DB"])
-    bundled = ROOT / "data" / "gcc_atlas.sqlite"
+    candidates = [
+        ROOT / "data" / "gcc_atlas.sqlite",
+        Path(__file__).resolve().parent / "gcc_atlas.sqlite",
+        ROOT / "gcc_atlas" / "gcc_atlas.sqlite",
+    ]
+    bundled = next((c for c in candidates if c.exists()), candidates[0])
     if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
         tmp_db = Path("/tmp/gcc_atlas.sqlite")
-        if not tmp_db.exists() and bundled.exists():
-            import shutil
-            tmp_db.parent.mkdir(parents=True, exist_ok=True)
-            shutil.copy2(bundled, tmp_db)
+        if not tmp_db.exists():
+            if bundled.exists():
+                import shutil
+                tmp_db.parent.mkdir(parents=True, exist_ok=True)
+                shutil.copy2(bundled, tmp_db)
+            else:
+                try:
+                    from .seed import seed_all
+                    tmp_db.parent.mkdir(parents=True, exist_ok=True)
+                    init_conn = sqlite3.connect(tmp_db)
+                    migrate(init_conn)
+                    seed_all(init_conn)
+                    init_conn.close()
+                except Exception:
+                    pass
         if tmp_db.exists():
             return tmp_db
     return bundled
