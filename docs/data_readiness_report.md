@@ -1,6 +1,6 @@
 # GCC Atlas — Data Readiness Report
 
-Generated 2026-10-16T10:03:11+00:00 from the live SQLite database. Every number below is a SQL query result.
+Generated 2026-10-16T10:12:57+00:00 from the live SQLite database. Every number below is a SQL query result.
 
 ## 1. Records per table
 
@@ -20,7 +20,7 @@ Generated 2026-10-16T10:03:11+00:00 from the live SQLite database. Every number 
 | incentives | 0 |
 | talent_observations | 0 |
 | scrape_jobs | 41 |
-| audit_log | 22 |
+| audit_log | 21 |
 
 ## 2. Companies and GCC centres
 
