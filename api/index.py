@@ -1,4 +1,5 @@
 import sys
+import traceback
 from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent.parent
@@ -7,6 +8,18 @@ if str(ROOT) not in sys.path:
 
 from gcc_atlas.api import app
 from fastapi.responses import FileResponse, JSONResponse
+from fastapi import Request
+
+@app.exception_handler(Exception)
+async def debug_exception_handler(request: Request, exc: Exception):
+    return JSONResponse(
+        status_code=500,
+        content={
+            "error": str(exc),
+            "traceback": traceback.format_exc(),
+            "type": type(exc).__name__,
+        }
+    )
 
 # Root endpoints
 @app.get("/", include_in_schema=False)
