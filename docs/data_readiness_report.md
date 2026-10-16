@@ -1,6 +1,6 @@
 # GCC Atlas — Data Readiness Report
 
-Generated 2026-10-16T09:54:28+00:00 from the live SQLite database. Every number below is a SQL query result.
+Generated 2026-10-16T10:03:11+00:00 from the live SQLite database. Every number below is a SQL query result.
 
 ## 1. Records per table
 
