@@ -8,9 +8,15 @@
         "includeFiles": [
           "data/**",
           "research/**",
-          "gcc_atlas/**"
+          "gcc_atlas/**",
+          "public/**",
+          "web/**"
         ]
       }
+    },
+    {
+      "src": "public/**",
+      "use": "@vercel/static"
     }
   ],
   "routes": [
@@ -23,11 +29,12 @@
       "dest": "/api/index.py"
     },
     {
-      "handle": "filesystem"
+      "src": "/static/(.*)",
+      "dest": "/public/static/$1"
     },
     {
       "src": "/(.*)",
-      "dest": "/index.html"
+      "dest": "/public/index.html"
     }
   ]
 }
