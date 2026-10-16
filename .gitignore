@@ -2,3 +2,5 @@ data/raw/
 __pycache__/
 *.sqlite
 *.db
+.venv/
+data/*.sqlite*

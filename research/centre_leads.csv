@@ -1,0 +1,21 @@
+company,aliases,industry,hq_country,city,source_keys
+Microsoft,Microsoft;Microsoft India Development Center;IDC,Technology,United States,Hyderabad,S001
+Microsoft,Microsoft;Microsoft India Development Center;IDC,Technology,United States,Bengaluru,S001
+Microsoft,Microsoft;Microsoft India Development Center;IDC,Technology,United States,Noida,S001
+Adobe,Adobe,Technology,United States,Noida,S002
+Adobe,Adobe,Technology,United States,Bengaluru,S003
+Walmart,Walmart;Walmart Global Tech,Retail,United States,Bengaluru,S004;S005
+Walmart,Walmart;Walmart Global Tech,Retail,United States,Chennai,S004;S006
+Goldman Sachs,Goldman Sachs;Goldman Sachs Services India,Financial services,United States,Hyderabad,S007;S008
+Goldman Sachs,Goldman Sachs;Goldman Sachs Services India,Financial services,United States,Bengaluru,S007
+JPMorgan Chase,JPMorgan Chase;JPMorgan;J.P. Morgan;JPMorganChase,Financial services,United States,Bengaluru,S009;S010
+JPMorgan Chase,JPMorgan Chase;JPMorgan;J.P. Morgan;JPMorganChase,Financial services,United States,Hyderabad,S010
+Barclays,Barclays;BGSC;BX India,Financial services,United Kingdom,Pune,S011;S012
+Barclays,Barclays;BGSC;BX India,Financial services,United Kingdom,Chennai,S012
+Barclays,Barclays;BGSC;BX India,Financial services,United Kingdom,Noida,S012
+Mastercard,Mastercard,Payments,United States,Pune,S013
+American Express,American Express;Amex,Financial services,United States,Gurugram,S014;S015
+Eli Lilly,Eli Lilly;Lilly;LCCI,Pharmaceuticals,United States,Hyderabad,S016;S017
+Eli Lilly,Eli Lilly;Lilly;LCCI,Pharmaceuticals,United States,Bengaluru,S016
+Ford,Ford;Ford Business Solutions;FBS,Automotive,United States,Chennai,S018;S019
+Ford,Ford;Ford Business Solutions;FBS,Automotive,United States,Bengaluru,S020
