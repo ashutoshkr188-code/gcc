@@ -1,4 +1,3 @@
-import os
 import sys
 from pathlib import Path
 
@@ -6,30 +5,29 @@ ROOT = Path(__file__).resolve().parent.parent
 if str(ROOT) not in sys.path:
     sys.path.insert(0, str(ROOT))
 
-from gcc_atlas.api import app as fastapi_app
+from gcc_atlas.api import app
 from fastapi.responses import FileResponse, JSONResponse
 
-@fastapi_app.get("/", include_in_schema=False)
+# Root endpoints
+@app.get("/", include_in_schema=False)
 def root():
     for p in [ROOT / "public" / "index.html", ROOT / "web" / "index.html"]:
         if p.exists():
             return FileResponse(p)
     return JSONResponse({"ok": True, "name": "GCC Atlas API"})
 
-@fastapi_app.get("/api", include_in_schema=False)
-@fastapi_app.get("/api/", include_in_schema=False)
+@app.get("/api", include_in_schema=False)
+@app.get("/api/", include_in_schema=False)
 def api_root():
     return JSONResponse({"ok": True, "name": "GCC Atlas API", "docs": "/docs"})
 
-class PathFixerMiddleware:
-    def __init__(self, app):
-        self.app = app
-
-    async def __call__(self, scope, receive, send):
-        if scope["type"] == "http":
-            path = scope.get("path", "")
-            if not path.startswith("/api") and path not in ("/", ""):
-                scope["path"] = "/api" + path
-        await self.app(scope, receive, send)
-
-app = PathFixerMiddleware(fastapi_app)
+# Alias all /api/* routes to /* so requests match regardless of whether /api prefix is stripped
+for r in list(app.routes):
+    if hasattr(r, "path") and r.path.startswith("/api/"):
+        alt_path = r.path[4:]  # e.g. /health, /overview
+        app.add_api_route(
+            alt_path,
+            r.endpoint,
+            methods=list(r.methods or ["GET"]),
+            include_in_schema=False
+        )
