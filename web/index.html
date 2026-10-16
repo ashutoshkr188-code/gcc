@@ -1,0 +1,41 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>GCC Atlas</title>
+  <meta name="description" content="Evidence-backed research on Global Capability Centres in six Indian cities.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Ccircle cx='12' cy='12' r='10' fill='%231a73e8'/%3E%3C/svg%3E">
+  <link rel="stylesheet" href="/static/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="#/overview" aria-label="GCC Atlas home">
+      <svg width="28" height="28" viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="10" fill="var(--primary)"/><path d="M12 6a4 4 0 0 0-4 4c0 3 4 8 4 8s4-5 4-8a4 4 0 0 0-4-4zm0 5.5a1.5 1.5 0 1 1 0-3 1.5 1.5 0 0 1 0 3z" fill="#fff"/></svg>
+      <span>GCC Atlas</span>
+    </a>
+    <form class="topsearch" id="topsearch" role="search">
+      <input id="topsearch-input" type="search" placeholder="Search companies or GCC centres" aria-label="Search companies or GCC centres" maxlength="100">
+    </form>
+  </header>
+  <div class="layout">
+    <nav class="rail" aria-label="Main">
+      <a href="#/overview" data-page="overview">Overview</a>
+      <a href="#/explorer" data-page="explorer">GCC Explorer</a>
+      <a href="#/compare" data-page="compare">City Comparison</a>
+      <a href="#/groups" data-page="groups">Company Groups</a>
+      <a href="#/policies" data-page="policies">Policies &amp; Incentives</a>
+      <a href="#/evidence" data-page="evidence">Evidence &amp; Verification</a>
+      <a href="#/assistant" data-page="assistant">Research Assistant</a>
+    </nav>
+    <main id="main" tabindex="-1" aria-live="polite"></main>
+  </div>
+  <div id="drawer" class="drawer" hidden>
+    <div class="drawer-panel" role="dialog" aria-modal="true" aria-labelledby="drawer-title">
+      <button class="icon-btn drawer-close" id="drawer-close" aria-label="Close">✕</button>
+      <div id="drawer-body"></div>
+    </div>
+  </div>
+  <script src="/static/app.js"></script>
+</body>
+</html>
