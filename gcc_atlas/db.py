@@ -26,9 +26,9 @@ STATUS_LABELS = {
 
 
 def _resolve_db_path(path=None):
-    if path:
+    if path and Path(path) != DEFAULT_DB and str(path) != str(DEFAULT_DB):
         return Path(path)
-    if "GCC_ATLAS_DB" in os.environ:
+    if "GCC_ATLAS_DB" in os.environ and os.environ["GCC_ATLAS_DB"]:
         return Path(os.environ["GCC_ATLAS_DB"])
     candidates = [
         ROOT / "data" / "gcc_atlas.sqlite",
@@ -64,7 +64,15 @@ def connect(path=None, check_same_thread=True):
         path.parent.mkdir(parents=True, exist_ok=True)
     except OSError:
         pass
-    conn = sqlite3.connect(path, check_same_thread=check_same_thread)
+    try:
+        conn = sqlite3.connect(path, check_same_thread=check_same_thread)
+    except sqlite3.OperationalError:
+        tmp_db = Path("/tmp/gcc_atlas.sqlite")
+        if not tmp_db.exists() and path.exists():
+            import shutil
+            tmp_db.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(path, tmp_db)
+        conn = sqlite3.connect(tmp_db if tmp_db.exists() else path, check_same_thread=check_same_thread)
     conn.row_factory = sqlite3.Row
     try:
         conn.execute("PRAGMA foreign_keys = ON")

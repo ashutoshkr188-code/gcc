@@ -24,7 +24,7 @@ app = FastAPI(title="GCC Atlas API", version="1.0.0")
 def get_conn():
     # FastAPI may run a sync dependency's setup and teardown on different worker threads.
     # The connection is still used by one request at a time.
-    conn = connect(os.environ.get("GCC_ATLAS_DB", DEFAULT_DB), check_same_thread=False)
+    conn = connect(os.environ.get("GCC_ATLAS_DB"), check_same_thread=False)
     try:
         yield conn
     finally:
