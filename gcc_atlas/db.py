@@ -25,13 +25,39 @@ STATUS_LABELS = {
 }
 
 
+def _resolve_db_path(path=None):
+    if path:
+        return Path(path)
+    if "GCC_ATLAS_DB" in os.environ:
+        return Path(os.environ["GCC_ATLAS_DB"])
+    bundled = ROOT / "data" / "gcc_atlas.sqlite"
+    if os.environ.get("VERCEL") or os.environ.get("AWS_LAMBDA_FUNCTION_NAME"):
+        tmp_db = Path("/tmp/gcc_atlas.sqlite")
+        if not tmp_db.exists() and bundled.exists():
+            import shutil
+            tmp_db.parent.mkdir(parents=True, exist_ok=True)
+            shutil.copy2(bundled, tmp_db)
+        if tmp_db.exists():
+            return tmp_db
+    return bundled
+
+
 def connect(path=None, check_same_thread=True):
-    path = Path(path or DEFAULT_DB)
-    path.parent.mkdir(parents=True, exist_ok=True)
+    path = _resolve_db_path(path)
+    try:
+        path.parent.mkdir(parents=True, exist_ok=True)
+    except OSError:
+        pass
     conn = sqlite3.connect(path, check_same_thread=check_same_thread)
     conn.row_factory = sqlite3.Row
-    conn.execute("PRAGMA foreign_keys = ON")
-    conn.execute("PRAGMA journal_mode = WAL")
+    try:
+        conn.execute("PRAGMA foreign_keys = ON")
+    except sqlite3.OperationalError:
+        pass
+    try:
+        conn.execute("PRAGMA journal_mode = WAL")
+    except sqlite3.OperationalError:
+        pass
     return conn
 
 

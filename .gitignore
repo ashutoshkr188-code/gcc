@@ -1,6 +1,10 @@
 data/raw/
 __pycache__/
-*.sqlite
-*.db
+*.pyc
+*.pyo
 .venv/
-data/*.sqlite*
+.pytest_cache/
+.env
+data/gcc_atlas.sqlite-shm
+data/gcc_atlas.sqlite-wal
+.vercel

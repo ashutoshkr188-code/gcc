@@ -205,9 +205,10 @@ pages.explorer = async (params) => {
     <div id="ex-results"></div>`;
   const render = async () => {
     const out = $("#ex-results");
+    if (!out) return;
     try {
       const rows = await api(`/api/centres?${qs(state)}`);
-      out.innerHTML = rows.length ? `<p class="small muted">${rows.length} result(s)</p><div class="table-wrap"><table class="stack">
+      if (!$("#ex-results")) return;      out.innerHTML = rows.length ? `<p class="small muted">${rows.length} result(s)</p><div class="table-wrap"><table class="stack">
         <thead><tr><th>Company</th><th>City</th><th>Industry</th><th>Status</th><th>Verification</th><th>Sources</th></tr></thead>
         <tbody>${rows.map(r => `<tr class="clickable" tabindex="0" data-company="${esc(r.company_slug)}">
           <td data-label="Company">${esc(r.company)}</td><td data-label="City">${esc(r.city)}</td><td data-label="Industry">${esc(r.industry)}</td>
@@ -239,10 +240,11 @@ pages.compare = async (params) => {
     <div id="cmp"></div>`;
   const render = async () => {
     const out = $("#cmp");
+    if (!out) return;
     if (chosen.size < 2) { out.innerHTML = empty("Pick at least two cities."); return; }
     try {
       const r = await api(`/api/cities/compare?${qs({ cities: [...chosen] })}`);
-      out.innerHTML = `<div class="cols">${r.cities.map(c => `<div class="card">
+      if (!$("#cmp")) return;      out.innerHTML = `<div class="cols">${r.cities.map(c => `<div class="card">
           <h3>${esc(c.name)}</h3><p class="muted small">${esc(c.state)}</p>
           <p class="small"><strong>Centre records:</strong> ${Object.entries(c.centres_by_status).map(([k, v]) => `${v} ${esc((OP_LABEL[k] || k).toLowerCase())}`).join(", ") || "none"}</p>
           <p class="small"><strong>Companies:</strong> ${c.companies.map(esc).join(", ") || "none recorded"}</p>
@@ -300,9 +302,12 @@ pages.policies = async (params) => {
     ${await dataBanner()}
     <div id="pol"></div>`;
   const render = async () => {
+    const out = $("#pol");
+    if (!out) return;
     const rows = all.filter(p => !sel || p.state === sel);
     const details = await Promise.all(rows.map(p => api(`/api/policies/${p.id}`)));
-    $("#pol").innerHTML = details.map(p => `<div class="card" style="margin-bottom:16px">
+    if (!$("#pol") || $("#pol") !== out) return;
+    out.innerHTML = details.map(p => `<div class="card" style="margin-bottom:16px">
       <h3>${esc(p.name)}</h3>
       <p class="small muted">${esc(p.state)} · ${esc(p.issuing_authority || "Issuer not recorded")} · ${esc(p.policy_kind.replaceAll("_", " "))}</p>
       <p><span class="badge">${esc(p.status.replaceAll("_", " "))}</span> ${statusBadge(p.verification_status, p.verification_label)}</p>
@@ -362,10 +367,12 @@ pages.assistant = async () => {
     <div id="ra-out"></div>`;
   const ask = async q => {
     const out = $("#ra-out");
+    if (!out) return;
     if (q.length < 3) { out.innerHTML = empty("Please type a longer question."); return; }
     out.innerHTML = `<p class="muted">Searching…</p>`;
     try {
       const r = await api("/api/research", { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify({ question: q }) });
+      if (!$("#ra-out")) return;
       const u = r.understood;
       out.innerHTML = `<div class="card">
         <p><strong>${esc(r.summary)}</strong></p>
@@ -383,15 +390,19 @@ pages.assistant = async () => {
 
 // ---------- router ----------
 
+let _routeVersion = 0;
+function routeVersion() { return _routeVersion; }
+
 async function route() {
+  const ver = ++_routeVersion;
   const [path, query] = (location.hash.slice(2) || "overview").split("?");
   const page = pages[path] ? path : "overview";
   document.querySelectorAll(".rail a").forEach(a => a.classList.toggle("active", a.dataset.page === page));
   document.querySelectorAll(".rail a").forEach(a => a.toggleAttribute("aria-current", a.dataset.page === page));
   closeDrawer();
   loading();
-  try { await pages[page](new URLSearchParams(query || "")); } catch (e) { fail(e); }
-  document.title = `${$(".rail a.active")?.textContent || "Overview"} · GCC Atlas`;
+  try { await pages[page](new URLSearchParams(query || "")); } catch (e) { if (ver === _routeVersion) fail(e); }
+  if (ver === _routeVersion) document.title = `${$(".rail a.active")?.textContent || "Overview"} · GCC Atlas`;
 }
 window.addEventListener("hashchange", route);
 $("#topsearch").addEventListener("submit", e => {
